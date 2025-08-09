@@ -1,152 +1,429 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Professional Website</title>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Poppins', sans-serif;
-    }
-    body {
-        background: #f5f5f5;
-        color: #333;
-    }
-    header {
-        background: linear-gradient(90deg, #4CAF50, #2e8b57);
-        color: white;
-        padding: 20px;
-        text-align: center;
-        animation: fadeIn 1.5s ease;
-    }
-    nav {
-        display: flex;
-        justify-content: center;
-        background: #333;
-    }
-    nav a {
-        color: white;
-        padding: 14px 20px;
-        text-decoration: none;
-        transition: 0.3s;
-    }
-    nav a:hover {
-        background: #4CAF50;
-    }
-    section {
-        padding: 40px 20px;
-        max-width: 1100px;
-        margin: auto;
-        animation: fadeUp 1.2s ease;
-    }
-    h2 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #4CAF50;
-    }
-    .gallery {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-    }
-    .gallery img {
-        width: 100%;
-        border-radius: 10px;
-        transition: transform 0.3s;
-    }
-    .gallery img:hover {
-        transform: scale(1.05);
-    }
-    form {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, textarea {
-        width: 100%;
-        padding: 10px;
-        margin: 8px 0;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    button {
-        background: #4CAF50;
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-    button:hover {
-        background: #2e8b57;
-    }
-    footer {
-        background: #333;
-        color: white;
-        text-align: center;
-        padding: 15px;
-        margin-top: 30px;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    @keyframes fadeUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple In-Browser PDF Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,#071025 0%, #071829 100%);color:#e6f0f2}
+    header{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:16px}
+    h1{font-size:18px;margin:0}
+    main{display:flex;gap:18px;padding:18px}
+    .sidebar{width:320px;background:rgba(255,255,255,0.03);border-radius:12px;padding:16px}
+    .viewer{flex:1;background:rgba(255,255,255,0.02);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .controls{display:flex;flex-wrap:wrap;gap:8px}
+    button, select, input[type="number"], input[type="text"]{background:#071029;border:1px solid rgba(255,255,255,0.06);color:#e6f0f2;padding:8px 10px;border-radius:8px}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    .canvas-wrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#071429;padding:12px}
+    canvas{box-shadow:0 6px 20px rgba(2,6,23,0.6);border-radius:4px}
+    .overlay{position:absolute;left:0;top:0;touch-action:none}
+    .muted{color:var(--muted);font-size:13px}
+    .field{margin-bottom:10px}
+    .small{padding:6px 8px;font-size:14px}
+    footer{padding:12px 18px;text-align:center;color:var(--muted)}
+    a.link{color:var(--accent);text-decoration:none}
+  </style>
 </head>
 <body>
+  <header>
+    <h1>PDF Editor — In Browser (no backend)</h1>
+    <div class="muted">Upload → annotate/draw/add text → download</div>
+  </header>
 
-<header>
-    <h1>Welcome to My Professional Website</h1>
-    <p>Showcasing my work with style</p>
-</header>
+  <main>
+    <aside class="sidebar">
+      <div class="field">
+        <label>Open PDF file</label>
+        <input id="fileInput" type="file" accept="application/pdf" />
+      </div>
 
-<nav>
-    <a href="#about">About</a>
-    <a href="#gallery">Gallery</a>
-    <a href="#contact">Contact</a>
-</nav>
+      <div class="field">
+        <label>Page controls</label>
+        <div class="controls">
+          <button id="prevBtn">◀ Prev</button>
+          <button id="nextBtn">Next ▶</button>
+          <div style="display:flex;align-items:center;gap:6px">
+            <label class="muted">Page</label>
+            <input id="pageNumber" type="number" value="1" min="1" style="width:72px" />
+          </div>
+        </div>
+      </div>
 
-<section id="about">
-    <h2>About Me</h2>
-    <p>Hello! I am passionate about web development and design. This site is fully mobile-friendly and created using HTML, CSS, and JavaScript. You can easily edit the text, colors, and images.</p>
-</section>
+      <div class="field">
+        <label>Zoom</label>
+        <div class="controls">
+          <button id="zoomOut">-</button>
+          <button id="zoomIn">+</button>
+          <select id="zoomSelect">
+            <option value="0.6">60%</option>
+            <option value="0.8">80%</option>
+            <option value="1" selected>100%</option>
+            <option value="1.5">150%</option>
+            <option value="2">200%</option>
+          </select>
+        </div>
+      </div>
 
-<section id="gallery">
-    <h2>My Gallery</h2>
-    <div class="gallery">
-        <img src="https://via.placeholder.com/400" alt="Work 1">
-        <img src="https://via.placeholder.com/400" alt="Work 2">
-        <img src="https://via.placeholder.com/400" alt="Work 3">
-        <img src="https://via.placeholder.com/400" alt="Work 4">
-    </div>
-</section>
+      <hr />
 
-<section id="contact">
-    <h2>Contact Me</h2>
-    <form action="https://docs.google.com/forms/d/e/FORM_ID/formResponse" method="POST">
-        <input type="text" name="entry.YOUR_ENTRY_ID" placeholder="Your Name" required>
-        <input type="email" name="entry.YOUR_ENTRY_ID" placeholder="Your Email" required>
-        <textarea name="entry.YOUR_ENTRY_ID" rows="4" placeholder="Your Message" required></textarea>
-        <button type="submit">Send Message</button>
-    </form>
-    <p style="text-align:center; margin-top:10px; font-size:14px;">* Form powered by Google Forms</p>
-</section>
+      <div class="field">
+        <label>Add text</label>
+        <input id="textInput" type="text" placeholder="Enter text to add" />
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input id="fontSize" type="number" value="18" min="6" style="width:80px" />
+          <input id="fontColor" type="color" value="#000000" />
+        </div>
+        <div class="muted" style="margin-top:8px">Click <strong>Place Text</strong> then tap on the page where you want text to appear.</div>
+        <div style="margin-top:8px" class="controls">
+          <button id="placeTextBtn">Place Text</button>
+          <button id="cancelPlace">Cancel</button>
+        </div>
+      </div>
 
-<footer>
-    <p>&copy; 2025 My Website | Designed by Me</p>
-</footer>
+      <div class="field">
+        <label>Freehand draw</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="toggleDraw">Start Drawing</button>
+          <input id="strokeWidth" type="number" value="2" min="1" style="width:80px" />
+          <input id="strokeColor" type="color" value="#ff0000" />
+        </div>
+        <div class="muted" style="margin-top:8px">Draw on the page and then click <strong>Save PDF</strong> to bake drawings into file.</div>
+        <div style="margin-top:8px" class="controls">
+          <button id="clearDraw">Clear Drawing</button>
+          <button id="undoDraw">Undo</button>
+        </div>
+      </div>
 
+      <hr />
+
+      <div class="field">
+        <label>Export</label>
+        <div class="controls">
+          <button id="savePdf">Save PDF (download)</button>
+          <button id="downloadOriginal">Download Original</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px" class="muted">Limitations: Basic editor — adds text and drawings. For complex edits (page reorder, form editing) use specialized apps.</div>
+    </aside>
+
+    <section class="viewer">
+      <div class="controls" style="justify-content:space-between;align-items:center">
+        <div class="muted">Page <span id="pageCount">0</span></div>
+        <div class="muted">Rendered with PDF.js + modified with pdf-lib</div>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="pdfCanvas"></canvas>
+        <!-- overlay for drawing and placing text -->
+        <canvas id="overlay" class="overlay"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built with <a class="link" href="https://mozilla.github.io/pdf.js/" target="_blank">PDF.js</a> and <a class="link" href="https://pdf-lib.js.org/" target="_blank">pdf-lib</a>. Works offline in browser.
+  </footer>
+
+  <!-- Libraries from CDN -->
+  <script src="https://unpkg.com/pdfjs-dist@3.11.349/build/pdf.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+  <script>
+    // Configure PDF.js worker (uses the same CDN script)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.349/build/pdf.worker.min.js';
+
+    // Elements
+    const fileInput = document.getElementById('fileInput');
+    const pdfCanvas = document.getElementById('pdfCanvas');
+    const overlay = document.getElementById('overlay');
+    const ctx = pdfCanvas.getContext('2d');
+    const octx = overlay.getContext('2d');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageNumberInput = document.getElementById('pageNumber');
+    const pageCountEl = document.getElementById('pageCount');
+    const zoomSelect = document.getElementById('zoomSelect');
+    const zoomIn = document.getElementById('zoomIn');
+    const zoomOut = document.getElementById('zoomOut');
+
+    const placeTextBtn = document.getElementById('placeTextBtn');
+    const cancelPlace = document.getElementById('cancelPlace');
+    const textInput = document.getElementById('textInput');
+    const fontSizeInput = document.getElementById('fontSize');
+    const fontColorInput = document.getElementById('fontColor');
+
+    const toggleDraw = document.getElementById('toggleDraw');
+    const strokeWidthInput = document.getElementById('strokeWidth');
+    const strokeColorInput = document.getElementById('strokeColor');
+    const clearDraw = document.getElementById('clearDraw');
+    const undoDraw = document.getElementById('undoDraw');
+
+    const savePdfBtn = document.getElementById('savePdf');
+    const downloadOriginalBtn = document.getElementById('downloadOriginal');
+
+    // State
+    let pdfDoc = null; // PDF.js document (for rendering)
+    let pdfBytesOriginal = null; // original file bytes
+    let currentPage = 1;
+    let totalPages = 0;
+    let scale = 1.0;
+
+    // Edits: { page: { drawings: [imageDataURL,...], texts: [{x,y,size,color,text}] } }
+    const edits = {}; // edits keyed by page number
+
+    // Drawing state
+    let drawing = false;
+    let drawMode = false;
+    let strokeStack = []; // history of strokes as image snapshots for undo
+
+    function resetOverlaySize() {
+      overlay.width = pdfCanvas.width;
+      overlay.height = pdfCanvas.height;
+      overlay.style.width = pdfCanvas.style.width;
+      overlay.style.height = pdfCanvas.style.height;
+    }
+
+    async function renderPage(pageNum) {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
+      pdfCanvas.width = viewport.width;
+      pdfCanvas.height = viewport.height;
+      pdfCanvas.style.maxWidth = '100%';
+      pdfCanvas.style.height = 'auto';
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport
+      };
+      await page.render(renderContext).promise;
+      // reset overlay
+      resetOverlaySize();
+      // if we have saved drawing images for this page, draw them on overlay
+      octx.clearRect(0,0,overlay.width,overlay.height);
+      if (edits[pageNum] && edits[pageNum].drawings) {
+        for (const dataURL of edits[pageNum].drawings) {
+          await drawImageOnOverlay(dataURL);
+        }
+      }
+      // also render text placeholders on overlay (visual only)
+      if (edits[pageNum] && edits[pageNum].texts) {
+        for (const t of edits[pageNum].texts) {
+          octx.font = `${t.size * scale}px sans-serif`;
+          octx.fillStyle = t.color;
+          octx.fillText(t.text, t.x * scale, t.y * scale);
+        }
+      }
+    }
+
+    // Helper to draw an image (dataURL) on overlay scaled to canvas
+    function drawImageOnOverlay(dataURL) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          octx.drawImage(img, 0, 0, overlay.width, overlay.height);
+          resolve();
+        };
+        img.src = dataURL;
+      });
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      pdfBytesOriginal = await file.arrayBuffer();
+      // load PDF.js doc
+      pdfDoc = await pdfjsLib.getDocument({ data: pdfBytesOriginal }).promise;
+      totalPages = pdfDoc.numPages;
+      pageCountEl.textContent = totalPages;
+      currentPage = 1;
+      pageNumberInput.value = 1;
+      // clear edits
+      for (const k in edits) delete edits[k];
+      await renderPage(currentPage);
+    });
+
+    prevBtn.addEventListener('click', async () => {
+      if (!pdfDoc) return; currentPage = Math.max(1, currentPage - 1); pageNumberInput.value = currentPage; await renderPage(currentPage);
+    });
+    nextBtn.addEventListener('click', async () => {
+      if (!pdfDoc) return; currentPage = Math.min(totalPages, currentPage + 1); pageNumberInput.value = currentPage; await renderPage(currentPage);
+    });
+    pageNumberInput.addEventListener('change', async (e) => {
+      if (!pdfDoc) return;
+      let p = parseInt(e.target.value||1); if (isNaN(p)) p=1; p = Math.min(Math.max(1,p), totalPages); currentPage = p; pageNumberInput.value = p; await renderPage(p);
+    });
+
+    zoomSelect.addEventListener('change', async (e)=>{ scale = parseFloat(e.target.value); await renderPage(currentPage); });
+    zoomIn.addEventListener('click', async ()=>{ scale = Math.min(3, scale + 0.25); zoomSelect.value = scale; await renderPage(currentPage); });
+    zoomOut.addEventListener('click', async ()=>{ scale = Math.max(0.4, scale - 0.25); zoomSelect.value = scale; await renderPage(currentPage); });
+
+    // Place text flow
+    let placingText = false;
+    placeTextBtn.addEventListener('click', ()=>{ placingText = true; placeTextBtn.disabled = true; cancelPlace.disabled = false; overlay.style.cursor = 'crosshair'; });
+    cancelPlace.addEventListener('click', ()=>{ placingText = false; placeTextBtn.disabled = false; cancelPlace.disabled = true; overlay.style.cursor = 'default'; });
+
+    overlay.addEventListener('pointerdown', async (ev) => {
+      const rect = overlay.getBoundingClientRect();
+      const x = (ev.clientX - rect.left);
+      const y = (ev.clientY - rect.top);
+
+      if (placingText) {
+        // Save text into edits coordinate system (top-left origin)
+        const fontSize = parseInt(fontSizeInput.value || 18);
+        const color = fontColorInput.value || '#000000';
+        const pageX = x / scale; // convert back to PDF coordinate space used for drawing on overlay
+        const pageY = y / scale;
+        if (!edits[currentPage]) edits[currentPage] = { drawings: [], texts: [] };
+        edits[currentPage].texts.push({ x: pageX, y: pageY, size: fontSize, color, text: textInput.value || '' });
+        // draw immediately on overlay
+        octx.font = `${fontSize * scale}px sans-serif`;
+        octx.fillStyle = color;
+        octx.fillText(textInput.value || '', x, y);
+        // reset placing
+        placingText = false; placeTextBtn.disabled = false; cancelPlace.disabled = true; overlay.style.cursor = 'default';
+      } else if (drawMode) {
+        drawing = true;
+        octx.lineWidth = parseInt(strokeWidthInput.value || 2);
+        octx.strokeStyle = strokeColorInput.value || '#ff0000';
+        octx.lineCap = 'round';
+        octx.beginPath();
+        octx.moveTo(x, y);
+      }
+    });
+
+    overlay.addEventListener('pointermove', async (ev) => {
+      if (!drawing) return;
+      const rect = overlay.getBoundingClientRect();
+      const x = (ev.clientX - rect.left);
+      const y = (ev.clientY - rect.top);
+      octx.lineTo(x, y);
+      octx.stroke();
+    });
+
+    overlay.addEventListener('pointerup', async (ev) => {
+      if (drawing) {
+        drawing = false;
+        // push snapshot for undo
+        strokeStack.push(overlay.toDataURL('image/png'));
+        // store this drawing snapshot into edits for current page
+        if (!edits[currentPage]) edits[currentPage] = { drawings: [], texts: [] };
+        edits[currentPage].drawings.push(overlay.toDataURL('image/png'));
+      }
+    });
+
+    toggleDraw.addEventListener('click', ()=>{
+      drawMode = !drawMode;
+      toggleDraw.textContent = drawMode ? 'Stop Drawing' : 'Start Drawing';
+      overlay.style.cursor = drawMode ? 'crosshair' : 'default';
+    });
+
+    clearDraw.addEventListener('click', ()=>{
+      if (edits[currentPage]) edits[currentPage].drawings = [];
+      octx.clearRect(0,0,overlay.width,overlay.height);
+    });
+
+    undoDraw.addEventListener('click', ()=>{
+      if (!edits[currentPage] || !edits[currentPage].drawings) return;
+      edits[currentPage].drawings.pop();
+      octx.clearRect(0,0,overlay.width,overlay.height);
+      // redraw remaining drawings
+      (async ()=>{
+        if (edits[currentPage] && edits[currentPage].drawings) {
+          for (const d of edits[currentPage].drawings) await drawImageOnOverlay(d);
+        }
+        // redraw texts
+        if (edits[currentPage] && edits[currentPage].texts) {
+          for (const t of edits[currentPage].texts) {
+            octx.font = `${t.size * scale}px sans-serif`;
+            octx.fillStyle = t.color;
+            octx.fillText(t.text, t.x * scale, t.y * scale);
+          }
+        }
+      })();
+    });
+
+    downloadOriginalBtn.addEventListener('click', ()=>{
+      if (!pdfBytesOriginal) return alert('No PDF loaded');
+      const blob = new Blob([pdfBytesOriginal], {type:'application/pdf'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'original.pdf'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Save edited PDF: use pdf-lib to load original bytes and add edits
+    savePdfBtn.addEventListener('click', async ()=>{
+      if (!pdfBytesOriginal) return alert('No PDF loaded');
+      const pdfLib = PDFLib;
+      const pdfDocLib = await pdfLib.PDFDocument.load(pdfBytesOriginal);
+      const pages = pdfDocLib.getPages();
+
+      for (let i=0;i<pages.length;i++) {
+        const pNum = i+1;
+        const page = pages[i];
+        const { width, height } = page.getSize();
+        // If there are drawings for this page, embed the image and draw it stretched to full page
+        if (edits[pNum] && edits[pNum].drawings && edits[pNum].drawings.length>0) {
+          // create a single composite image by layering all drawing dataURLs onto an offscreen canvas matching rendered canvas size
+          const off = document.createElement('canvas');
+          off.width = pdfCanvas.width; off.height = pdfCanvas.height;
+          const offctx = off.getContext('2d');
+          // Draw original rendered page as background to maintain visual alignment (optional). We will only embed drawings, so keep transparent background.
+          for (const dataURL of edits[pNum].drawings) {
+            const img = await loadImage(dataURL);
+            offctx.drawImage(img, 0, 0, off.width, off.height);
+          }
+          // Convert off canvas to PNG bytes
+          const pngDataUrl = off.toDataURL('image/png');
+          const pngBytes = dataURLToUint8Array(pngDataUrl);
+          const embeddedPng = await pdfDocLib.embedPng(pngBytes);
+          // Draw image to PDF page covering full area. Need to map canvas pixels -> PDF points
+          // We used pdf.js rendering scale to render. Compute scale factor between rendered canvas and PDF points.
+          const canvasToPdfScaleX = width / pdfCanvas.width;
+          const canvasToPdfScaleY = height / pdfCanvas.height;
+          page.drawImage(embeddedPng, {
+            x: 0,
+            y: 0,
+            width: width,
+            height: height,
+            opacity: 1
+          });
+        }
+
+        // Add texts
+        if (edits[pNum] && edits[pNum].texts && edits[pNum].texts.length>0) {
+          for (const t of edits[pNum].texts) {
+            // t.x, t.y are in page coordinates matching canvas (top-left). Need to convert to PDF-lib coords (bottom-left)
+            const xPdf = t.x * (width / pdfCanvas.width);
+            const yPdf = height - (t.y * (height / pdfCanvas.height)); // flip y
+            // Choose a simple font
+            const font = await pdfDocLib.embedFont(pdfLib.StandardFonts.Helvetica);
+            page.drawText(t.text, {
+              x: xPdf,
+              y: yPdf - (t.size * 0.75), // small vertical adjustment
+              size: t.size,
+              font,
+              color: pdfLib.rgb(...hexToRgbNormalized(t.color))
+            });
+          }
+        }
+      }
+
+      const modifiedBytes = await pdfDocLib.save();
+      const blob = new Blob([modifiedBytes], {type:'application/pdf'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'edited.pdf'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Helpers
+    function loadImage(dataURL) { return new Promise((res)=>{ const img=new Image(); img.onload=()=>res(img); img.src=dataURL; }); }
+    function dataURLToUint8Array(dataURL){ const base64 = dataURL.split(',')[1]; const binary = atob(base64); const len = binary.length; const bytes = new Uint8Array(len); for (let i=0;i<len;i++) bytes[i]=binary.charCodeAt(i); return bytes; }
+    function hexToRgbNormalized(hex){ hex = hex.replace('#',''); const bigint = parseInt(hex,16); const r = (bigint>>16)&255; const g=(bigint>>8)&255; const b=bigint&255; return [r/255,g/255,b/255]; }
+
+    // Draw initial blank
+    ctx.fillStyle='#0b1220'; ctx.fillRect(0,0,600,800);
+  </script>
 </body>
 </html>
